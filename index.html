@@ -381,7 +381,7 @@
             const anoInput = fechaInput.slice(0, 4); 
             let totalDia = historial[fechaInput] || 0;
             let totalMes = 0;
-            let totalAno = 0;
+            let totalAno = 0; 
             for (let k in historial) {
                 if (k.startsWith(mesInput)) totalMes += historial[k];
                 if (k.startsWith(anoInput)) totalAno += historial[k];
