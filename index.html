@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <meta name="apple-mobile-web-app-title" content="BirraCount">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Contador de Birres</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            text-align: center; background: #2c3e50; color: white; 
+            margin: 0; height: 100vh; overflow: hidden; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        #beer-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 0; 
+            background: #f1c40f; transition: height 0.6s cubic-bezier(0.19, 1, 0.22, 1); z-index: 1;
+        }
+
+        .wave-wrapper { position: absolute; top: -38px; left: 0; width: 100%; height: 40px; overflow: hidden; }
+        .wave-svg { position: relative; display: block; width: 100%; height: 40px; }
+
+        .bubble {
+            position: absolute; background: rgba(255, 255, 255, 0.7); border-radius: 50%;
+            bottom: -20px; animation: rise 2s ease-in forwards; z-index: 2;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0); opacity: 0.7; }
+            100% { transform: translateY(-110vh); opacity: 0; }
+        }
+
+        h1, #contador, .ui-wrap { position: relative; z-index: 10; pointer-events: none; }
+        #contador { font-size: 120px; font-weight: bold; text-shadow: 2px 4px 10px rgba(0,0,0,0.3); margin: 10px 0; line-height: 1; }
+
+        .botones-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; }
+        button { 
+            padding: 25px 60px; font-size: 28px; cursor: pointer; pointer-events: auto;
+            background: #27ae60; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 6px #1e8449; transition: 0.1s;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 2px #1e8449; }
+        
+        .reset { background: #e74c3c; margin-top: 10px; padding: 10px 20px; font-size: 14px; opacity: 0.6; border-radius: 5px; }
+        .btn-restar { width: 60px; height: 60px; padding: 0; border-radius: 50%; font-size: 40px; line-height: 1; background: #c0392b; box-shadow: 0 6px #922b21; display: flex; align-items: center; justify-content: center; }
+        .btn-stats { background: #34495e; box-shadow: 0 4px #2c3e50; margin-right: 10px; padding: 10px 20px; font-size: 14px; border-radius: 5px; }
+
+        /* --- BOTONES SUPERIORES --- */
+        .top-controls { position: absolute; top: 20px; left: 20px; z-index: 20; display: flex; gap: 15px; }
+        .btn-circle { width: 50px; height: 50px; padding: 0; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+        .btn-circle:active { transform: scale(0.9); }
+        .btn-trophy { background: #f39c12; box-shadow: 0 4px #d35400; }
+        .btn-share { background: #3498db; box-shadow: 0 4px #2980b9; }
+        /* Nuevo botón ranking mundial */
+        .btn-world { background: #9b59b6; box-shadow: 0 4px #8e44ad; }
+
+        /* --- NOTIFICACIÓN --- */
+        #notif-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .achievement-toast { background: #2c3e50; color: #f1c40f; border: 2px solid #f1c40f; border-radius: 10px; padding: 10px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; width: 280px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); opacity: 0; transform: translateY(-20px); transition: all 0.5s ease; pointer-events: auto; }
+        .achievement-toast.show { opacity: 1; transform: translateY(0); }
+        .toast-icon { font-size: 24px; }
+        .toast-text { text-align: left; }
+        .toast-title { font-weight: bold; font-size: 14px; display: block; margin-bottom: 2px;}
+        .toast-desc { font-size: 15px; opacity: 0.95; line-height: 1.2; }
+
+        /* --- MODALES --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; pointer-events: auto; }
+        .modal-content { background: #ecf0f1; color: #2c3e50; padding: 20px; border-radius: 10px; width: 90%; max-width: 350px; text-align: left; max-height: 80vh; overflow-y: auto; }
+        
+        .achievement-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #bdc3c7; opacity: 0.5; filter: grayscale(1); }
+        .achievement-item.unlocked { opacity: 1; filter: grayscale(0); background: rgba(241, 196, 15, 0.1); }
+        .ach-icon { font-size: 24px; width: 30px; text-align: center; }
+        .ach-info { flex: 1; }
+        .ach-name { font-weight: bold; font-size: 14px; display: block; }
+        .ach-desc { font-size: 12px; color: #7f8c8d; }
+
+        .close-modal { margin-top: 20px; background: #7f8c8d; width: 100%; font-size: 16px; padding: 12px; border-radius: 5px; box-shadow: none; cursor: pointer;}
+        .stat-line { margin: 12px 0; font-size: 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+
+        /* ESTILOS RANKING MUNDIAL */
+        .rank-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #bdc3c7; font-size: 16px; }
+        .rank-pos { font-weight: bold; color: #f1c40f; width: 30px; font-size: 18px; }
+        .rank-user { flex: 1; font-weight: 500; text-align: left; padding-left: 10px;}
+        .rank-score { font-weight: bold; color: #27ae60; font-size: 18px; }
+        .loading-text { text-align: center; padding: 20px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <div id="beer-container">
+        <div class="wave-wrapper">
+            <svg id="svg-ola" class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0 C150,0 200,100 400,100 C600,100 650,0 800,0 C950,0 1000,100 1200,100 L1200,120 L0,120 Z" fill="#f1c40f"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="top-controls">
+        <button class="btn-circle btn-trophy" onclick="abrirLogros()">🏆</button>
+        <button class="btn-circle btn-share" onclick="compartirRank()">📲</button>
+        <button class="btn-circle btn-world" onclick="abrirRankingMundial()">🌍</button>
+    </div>
+
+    <div id="notif-container"></div>
+
+    <h1>🍻 Cerveses acumulades</h1>
+    <div id="contador">0</div>
+    
+    <div class="ui-wrap">
+        <div class="botones-row">
+            <button class="btn-restar" onclick="restar()">-</button>
+            <button onclick="sumar()">+1 Birra</button>
+        </div>
+        <div>
+            <button class="btn-stats" onclick="abrirEstadisticas()">📅 Historial</button>
+            <button class="reset" onclick="resetear()">Reset comptador</button>
+        </div>
+    </div>
+
+    <div id="modal-stats" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="text-align:center; margin-top:0">📊 Estadístiques</h2>
+            <label>Tria una data:</label>
+            <input type="date" id="fechaStats" onchange="calcularStats()">
+            <div class="stat-line"><span id="label-dia">Dia:</span> <strong id="res-dia">0</strong> <span id="lit-dia">(0L)</span></div>
+            <div class="stat-line"><span id="label-mes">Mes:</span> <strong id="res-mes">0</strong> <span id="lit-mes">(0L)</span></div>
+            <div class="stat-line"><span id="label-ano">Any:</span> <strong id="res-ano">0</strong> <span id="lit-ano">(0L)</span></div>
+            <button class="close-modal" onclick="cerrarModal('modal-stats')">Tancar</button>
+        </div>
+    </div>
+
+    <div id="modal-logros" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="text-align:center; margin-top:0">🏆 Assoliments</h2>
+            <div id="lista-logros"></div>
+            <button class="close-modal" onclick="cerrarModal('modal-logros')">Tancar</button>
+        </div>
+    </div>
+
+    <div id="modal-world" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="text-align:center; margin-top:0">🌍 Top Mundial</h2>
+            <div style="font-size: 12px; color: #7f8c8d; text-align:center; margin-bottom:10px;">Competeix amb els teus amics!</div>
+            <div id="lista-ranking">
+                <div class="loading-text">Carregant ranking...</div>
+            </div>
+            <button class="close-modal" onclick="cerrarModal('modal-world')">Tancar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGROS ---
+        const CATALOGO_LOGROS = [
+            { id: 'l1', title: 'Un glopet', desc: 'Beure la teva 1ª cervesa', cond: (t, d) => t >= 1 },
+            { id: 'l2', title: 'Big five', desc: 'Arribar a 5 cerveses totals', cond: (t, d) => t >= 5 },
+            { id: 'l3', title: 'SixPack', desc: 'Acumular 6 cerveses (un pack)', cond: (t, d) => t >= 6 },
+            { id: 'l4', title: 'Noob', desc: 'Beure 5 Litres (15 birres)', cond: (t, d) => t >= 15 },
+            { id: 'l5', title: 'Escalfant', desc: 'Beure 3 cerveses en un sol dia', cond: (t, d) => d >= 3 },
+            { id: 'l6', title: 'Coma etílic', desc: 'Beure 10 cerveses en un sol dia', cond: (t, d) => d >= 10 },
+            { id: 'l7', title: 'Finde', desc: 'Beure un Dissabte o Diumenge', cond: (t, d) => {
+                const day = new Date().getDay(); 
+                return (day === 0 || day === 6) && d >= 1;
+            }},
+            { id: 'l8', title: 'Afterwork', desc: 'Beure un Divendres', cond: (t, d) => {
+                const day = new Date().getDay(); 
+                return day === 5 && d >= 1;
+            }},
+            { id: 'l9', title: 'Alcoholic', desc: 'Acumular 50 cerveses totals', cond: (t, d) => t >= 50 },
+            { id: 'l10', title: 'Em fa mal el fetge', desc: 'Acumular 100 cerveses totals', cond: (t, d) => t >= 100 },
+            { id: 'l11', title: 'Professional', desc: 'Acumular 500 cerveses totals', cond: (t, d) => t >= 500 },
+            { id: 'l12', title: 'Heavyweight', desc: 'Acumular 1000 cerveses totals', cond: (t, d) => t >= 1000 }
+        ];
+
+        let cuenta = parseInt(localStorage.getItem('misCervezas')) || 0;
+        let historial = JSON.parse(localStorage.getItem('historialBirras')) || {};
+        let logrosDesbloqueados = JSON.parse(localStorage.getItem('misLogros')) || [];
+        // Recuperar nombre de usuario si existe
+        let username = localStorage.getItem('miUsername') || null;
+
+        document.getElementById("contador").innerText = cuenta;
+        const container = document.getElementById("beer-container");
+
+        function obtenerFechaHoy() { return new Date().toISOString().split('T')[0]; }
+
+        function sumar() {
+            cuenta++;
+            if (navigator.vibrate) navigator.vibrate(60);
+            let hoy = obtenerFechaHoy();
+            if (!historial[hoy]) historial[hoy] = 0;
+            historial[hoy]++;
+            lanzarEfectoLíquido();
+            actualizarPantalla();
+            checkLogros(cuenta, historial[hoy]);
+            
+            // Subir puntuación a Neon si tiene usuario
+            if(username) subirPuntuacion();
+        }
+
+        function restar() {
+            if (cuenta > 0) {
+                cuenta--;
+                if (navigator.vibrate) navigator.vibrate(30);
+                let hoy = obtenerFechaHoy();
+                if (historial[hoy] && historial[hoy] > 0) historial[hoy]--;
+                actualizarPantalla();
+                // Actualizar puntuación a Neon
+                if(username) subirPuntuacion();
+            }
+        }
+
+        function checkLogros(total, diario) {
+            let nuevosLogros = false;
+            CATALOGO_LOGROS.forEach(logro => {
+                if (!logrosDesbloqueados.includes(logro.id) && logro.cond(total, diario)) {
+                    logrosDesbloqueados.push(logro.id);
+                    lanzarNotificacion(logro);
+                    nuevosLogros = true;
+                }
+            });
+            if (nuevosLogros) localStorage.setItem('misLogros', JSON.stringify(logrosDesbloqueados));
+        }
+
+        function lanzarNotificacion(logro) {
+            const containerNotif = document.getElementById('notif-container');
+            const div = document.createElement('div');
+            div.className = 'achievement-toast';
+            div.innerHTML = `<div class="toast-icon">🏆</div><div class="toast-text"><span class="toast-title">Assoliment Desbloquejat!</span><span class="toast-desc">${logro.title}</span></div>`;
+            containerNotif.appendChild(div);
+            setTimeout(() => div.classList.add('show'), 10);
+            setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 500); }, 3000);
+        }
+
+        // --- RANKING MUNDIAL Y NETLIFY FUNCTION ---
+        async function abrirRankingMundial() {
+            // Si no tiene nombre, pedirlo
+            if (!username) {
+                let inputName = prompt("Escriu el teu nom pel Ranking Mundial:");
+                if (inputName && inputName.trim() !== "") {
+                    username = inputName.trim();
+                    localStorage.setItem('miUsername', username);
+                    subirPuntuacion(); // Registrar primera vez
+                } else {
+                    return; // Cancela si no pone nombre
+                }
+            }
+
+            document.getElementById('modal-world').style.display = 'flex';
+            const lista = document.getElementById('lista-ranking');
+            lista.innerHTML = '<div class="loading-text">Carregant ranking...</div>';
+
+            try {
+                // LLAMADA A LA FUNCIÓN NETLIFY
+                const res = await fetch('/.netlify/functions/ranking');
+                
+                if (!res.ok) throw new Error("Error en servidor");
+                
+                const data = await res.json();
+
+                lista.innerHTML = '';
+                if(data.length === 0) lista.innerHTML = '<div class="loading-text">Encara no hi ha dades. Sigues el primer!</div>';
+
+                data.forEach((user, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'rank-row';
+                    // Destacar al usuario actual
+                    if (user.username === username) row.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+                    
+                    // Icono de medalla para el top 3
+                    let posIcon = `#${index + 1}`;
+                    if (index === 0) posIcon = "🥇";
+                    if (index === 1) posIcon = "🥈";
+                    if (index === 2) posIcon = "🥉";
+
+                    row.innerHTML = `
+                        <div class="rank-pos">${posIcon}</div>
+                        <div class="rank-user">${user.username}</div>
+                        <div class="rank-score">${user.score}</div>
+                    `;
+                    lista.appendChild(row);
+                });
+
+            } catch (err) {
+                lista.innerHTML = '<div class="loading-text" style="color:#e74c3c">Error connectant al servidor.</div>';
+                console.error(err);
+            }
+        }
+
+        async function subirPuntuacion() {
+            if (!username) return;
+            try {
+                await fetch('/.netlify/functions/ranking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, score: cuenta })
+                });
+            } catch (err) { console.error("Error guardando score", err); }
+        }
+
+        async function compartirRank() {
+            const litros = (cuenta * 0.33).toFixed(2);
+            const numLogros = logrosDesbloqueados.length;
+            const texto = `🍻 BirraCount Status 🍻\n\n🏅 Total: ${cuenta} birres\n💧 Litres: ${litros} L\n🏆 Assoliments: ${numLogros} desbloquejats\n\nPosa el fre magdalé! Supera'm si pots!`;
+            if (navigator.share) {
+                try { await navigator.share({ title: 'BirraCount Rank', text: texto }); } catch (err) {}
+            } else { prompt("Copia:", texto); }
+        }
+
+        function abrirLogros() {
+            const lista = document.getElementById('lista-logros');
+            lista.innerHTML = '';
+            CATALOGO_LOGROS.forEach(logro => {
+                const isUnlocked = logrosDesbloqueados.includes(logro.id);
+                const item = document.createElement('div');
+                item.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
+                item.innerHTML = `<div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div><div class="ach-info"><span class="ach-name">${logro.title}</span><span class="ach-desc">${logro.desc}</span></div>`;
+                lista.appendChild(item);
+            });
+            document.getElementById('modal-logros').style.display = 'flex';
+        }
+
+        function resetear() {
+            if(confirm("Segur? Esborraràs tot (i sortiràs del ranking).")) {
+                cuenta = 0; historial = {}; logrosDesbloqueados = [];
+                localStorage.setItem('historialBirras', JSON.stringify({}));
+                localStorage.setItem('misLogros', JSON.stringify([]));
+                // Opcional: Borrar username si quieres que se vuelva a registrar
+                // username = null; localStorage.removeItem('miUsername'); 
+                actualizarPantalla();
+                if(username) subirPuntuacion(); // Actualizar ranking a 0
+            }
+        }
+
+        function actualizarPantalla() {
+            document.getElementById("contador").innerText = cuenta;
+            localStorage.setItem('misCervezas', cuenta);
+            localStorage.setItem('historialBirras', JSON.stringify(historial));
+        }
+
+        function crearBurbuja(esExplosion = false) {
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            const size = esExplosion ? (Math.random() * 15 + 5 + "px") : (Math.random() * 8 + 2 + "px");
+            bubble.style.width = size; bubble.style.height = size;
+            bubble.style.left = Math.random() * 100 + "vw";
+            if (!esExplosion) document.body.appendChild(bubble);
+            else container.appendChild(bubble);
+            setTimeout(() => { bubble.remove(); }, 2000);
+        }
+        setInterval(() => { crearBurbuja(false); }, 400);
+
+        function lanzarEfectoLíquido() {
+            container.style.height = "45vh"; 
+            for(let i = 0; i < 10; i++) setTimeout(() => crearBurbuja(true), i * 50);
+            setTimeout(() => { container.style.height = "0"; }, 800);
+        }
+
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        function abrirEstadisticas() {
+            document.getElementById('modal-stats').style.display = 'flex';
+            document.getElementById('fechaStats').valueAsDate = new Date(); 
+            calcularStats();
+        }
+
+        function calcularStats() {
+            const fechaInput = document.getElementById('fechaStats').value;
+            if (!fechaInput) return;
+            const [y, m, d] = fechaInput.split('-'); 
+            const fechaObj = new Date(y, m - 1, d);
+            const dies = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
+            const mesos = ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'];
+            document.getElementById('label-dia').innerText = `Dia (${dies[fechaObj.getDay()]} ${parseInt(d)}):`;
+            document.getElementById('label-mes').innerText = `Mes (${mesos[parseInt(m) - 1]}):`;
+            document.getElementById('label-ano').innerText = `Any (${y}):`;
+            const mesInput = fechaInput.slice(0, 7); 
+            const anoInput = fechaInput.slice(0, 4); 
+            let totalDia = historial[fechaInput] || 0;
+            let totalMes = 0;
+            let totalAno = 0;
+            for (let k in historial) {
+                if (k.startsWith(mesInput)) totalMes += historial[k];
+                if (k.startsWith(anoInput)) totalAno += historial[k];
+            }
+            pintarDato("res-dia", "lit-dia", totalDia);
+            pintarDato("res-mes", "lit-mes", totalMes);
+            pintarDato("res-ano", "lit-ano", totalAno);
+        }
+        function pintarDato(idN, idL, c) {
+            document.getElementById(idN).innerText = c;
+            document.getElementById(idL).innerText = `(${(c * 0.33).toFixed(2)} L)`;
+        }
+
+        window.onclick = function(event) { if (event.target.classList.contains('modal-overlay')) event.target.style.display = "none"; }
+        document.onkeydown = function(evt) {
+            if (evt.key === "Escape") {
+                document.getElementById('modal-stats').style.display = "none";
+                document.getElementById('modal-logros').style.display = "none";
+                document.getElementById('modal-world').style.display = "none";
+            }
+        };
+    </script>
+</body>
+</html>
