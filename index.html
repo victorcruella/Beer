@@ -255,12 +255,12 @@
             lista.innerHTML = '<div class="loading-text">Carregant ranking...</div>';
 
             try {
-                // LLAMADA A LA FUNCIÓN NETLIFY
-                const res = await fetch('/api/ranking');
+                // Añadimos ?t=tiempo_actual para que la URL sea siempre distinta y no use caché
+                const res = await fetch('/api/ranking?t=' + new Date().getTime());
                 
                 if (!res.ok) throw new Error("Error en servidor");
                 
-                const data = await res.json();
+const data = await res.json();
 
                 lista.innerHTML = '';
                 if(data.length === 0) lista.innerHTML = '<div class="loading-text">Encara no hi ha dades. Sigues el primer!</div>';
@@ -268,9 +268,15 @@
                 data.forEach((user, index) => {
                     const row = document.createElement('div');
                     row.className = 'rank-row';
-                    // Destacar al usuario actual
-                    if (user.username === username) row.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
                     
+                    // TRUCO VISUAL: Si es el usuario actual, usamos SU cuenta local real
+                    // porque la base de datos podría ir un poco lenta en actualizar
+                    let displayScore = user.score;
+                    if (user.username === username) {
+                        row.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+                        displayScore = cuenta; // <--- USAMOS LA CUENTA LOCAL
+                    }
+
                     // Icono de medalla para el top 3
                     let posIcon = `#${index + 1}`;
                     if (index === 0) posIcon = "🥇";
@@ -280,7 +286,7 @@
                     row.innerHTML = `
                         <div class="rank-pos">${posIcon}</div>
                         <div class="rank-user">${user.username}</div>
-                        <div class="rank-score">${user.score}</div>
+                        <div class="rank-score">${displayScore}</div>
                     `;
                     lista.appendChild(row);
                 });
