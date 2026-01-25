@@ -311,7 +311,7 @@ const data = await res.json();
         async function compartirRank() {
             const litros = (cuenta * 0.33).toFixed(2);
             const numLogros = logrosDesbloqueados.length;
-            const texto = `🍻 BirraCount Status 🍻\n\n🏅 Total: ${cuenta} birres\n💧 Litres: ${litros} L\n🏆 Assoliments: ${numLogros} desbloquejats\n\nPosa el fre magdalé! Supera'm si pots!`;
+            const texto = `🍻 BirraCount Status 🍻\n\n🏅 Total: ${cuenta} birres\n💧 Litres: ${litros} L\n🏆 Assoliments: ${numLogros} desbloquejats\n\n`;
             if (navigator.share) {
                 try { await navigator.share({ title: 'BirraCount Rank', text: texto }); } catch (err) {}
             } else { prompt("Copia:", texto); }
