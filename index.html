@@ -256,7 +256,7 @@
 
             try {
                 // LLAMADA A LA FUNCIÓN NETLIFY
-                const res = await fetch('/.netlify/functions/ranking');
+                const res = await fetch('/api/ranking');
                 
                 if (!res.ok) throw new Error("Error en servidor");
                 
@@ -294,7 +294,7 @@
         async function subirPuntuacion() {
             if (!username) return;
             try {
-                await fetch('/.netlify/functions/ranking', {
+                await fetch('/api/ranking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: username, score: cuenta })
