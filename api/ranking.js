@@ -10,23 +10,23 @@ export default async function handler(req, res) {
   try {
     await client.connect();
 
-    // 2. GUARDAR PUNTUACIÓN (POST)
+// 2. GUARDAR PUNTUACIÓN (POST)
     if (req.method === 'POST') {
-      // Vercel ya te da el body parseado si envías JSON
       const { username, score } = req.body;
 
+      // CAMBIO IMPORTANTE: Quitamos "GREATEST" para permitir restar y resetear
       const query = `
         INSERT INTO ranking (username, score) 
         VALUES ($1, $2) 
         ON CONFLICT (username) 
-        DO UPDATE SET score = GREATEST(ranking.score, $2)
+        DO UPDATE SET score = $2
       `;
       
       await client.query(query, [username, score]);
       await client.end();
       return res.status(200).json({ message: "Guardado" });
     }
-
+    
     // 3. LEER RANKING (GET)
     if (req.method === 'GET') {
       const result = await client.query('SELECT * FROM ranking ORDER BY score DESC LIMIT 50');
