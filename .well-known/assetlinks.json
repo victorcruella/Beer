@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "app.vercel.beer_gilt_psi.twa",
+        "package_name": "com.birracount.app",
         "sha256_cert_fingerprints": ["7C:31:78:91:62:DD:91:5E:4F:C9:4C:78:46:83:B5:15:CC:7B:D5:19:DC:29:3F:E0:01:7A:5D:12:3D:0D:E1:A9"]
       }
     }]
