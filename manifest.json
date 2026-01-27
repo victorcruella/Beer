@@ -1,22 +1,43 @@
 {
   "name": "BirraCount",
   "short_name": "BirraCount",
+  "description": "Porta el compte de les teves cerveses i competeix en el rànquing mundial. L'aplicació definitiva per als amants de la cervesa.",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#2c3e50",
   "orientation": "portrait",
-  "scope": "/",
+  "lang": "ca",
+  "dir": "ltr",
+  "categories": ["entertainment", "lifestyle", "food"],
+  "iarc_rating_id": "", 
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
