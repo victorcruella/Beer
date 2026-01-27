@@ -52,9 +52,23 @@
         button { 
             padding: 25px 60px; font-size: 28px; cursor: pointer; pointer-events: auto;
             background: #27ae60; color: white; border: none; border-radius: 50px;
-            box-shadow: 0 6px #1e8449; transition: 0.1s;
+            box-shadow: 0 6px #1e8449; 
+            transition: transform 0.05s, box-shadow 0.05s; /* Más rápido para móvil */
+            -webkit-user-select: none; /* Evita selección de texto */
+            user-select: none;
+            -webkit-touch-callout: none;
         }
-        button:active { transform: translateY(4px); box-shadow: 0 2px #1e8449; }
+
+        /* Estado ACTIVO para todos los botones (incluido el de restar) */
+        button:active, .btn-restar:active, .btn-circle:active { 
+            transform: translateY(4px) scale(0.98) !important; 
+            box-shadow: 0 2px #1e8449 !important; 
+        }
+
+        /* Efecto HOVER solo para PC (para que no falle en móvil) */
+        @media (hover: hover) {
+            button:hover { background: #2ecc71; }
+        }
         
         .reset { background: #e74c3c; margin-top: 10px; padding: 10px 20px; font-size: 14px; opacity: 0.6; border-radius: 5px; }
         .btn-restar { width: 60px; height: 60px; padding: 0; border-radius: 50%; font-size: 40px; line-height: 1; background: #c0392b; box-shadow: 0 6px #922b21; display: flex; align-items: center; justify-content: center; }
@@ -103,8 +117,7 @@
         .loading-text { text-align: center; padding: 20px; color: #7f8c8d; }
     </style>
 </head>
-<body>
-
+<body ontouchstart="">
     <div id="beer-container">
         <div class="wave-wrapper">
             <svg id="svg-ola" class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
