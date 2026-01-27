@@ -70,8 +70,6 @@
 }
         .btn-circle:active { transform: scale(0.9); }
         .btn-trophy { background: #f39c12; box-shadow: 0 4px #d35400; }
-        .btn-share { background: #3498db; box-shadow: 0 4px #2980b9; }
-        /* Nuevo botón ranking mundial */
         .btn-world { background: #9b59b6; box-shadow: 0 4px #8e44ad; }
 
         /* --- NOTIFICACIÓN --- */
@@ -117,7 +115,6 @@
 
     <div class="top-controls">
     <button class="btn-circle btn-trophy" onclick="abrirLogros()">🏆</button>
-    <button class="btn-circle btn-share" onclick="compartirRank()">📲</button>
     <button class="btn-circle btn-world" onclick="abrirRankingMundial()">🌍</button>
     <a href="https://ko-fi.com/victorcruellagarcia" target="_blank" style="text-decoration:none;">
         <button class="btn-circle btn-kofi">☕</button>
@@ -323,15 +320,6 @@ const data = await res.json();
                     body: JSON.stringify({ username: username, score: cuenta })
                 });
             } catch (err) { console.error("Error guardando score", err); }
-        }
-
-        async function compartirRank() {
-            const litros = (cuenta * 0.33).toFixed(2);
-            const numLogros = logrosDesbloqueados.length;
-            const texto = `🍻 BirraCount Status 🍻\n\n🏅 Total: ${cuenta} birres\n💧 Litres: ${litros} L\n🏆 Assoliments: ${numLogros} desbloquejats\n\n`;
-            if (navigator.share) {
-                try { await navigator.share({ title: 'BirraCount Rank', text: texto }); } catch (err) {}
-            } else { prompt("Copia:", texto); }
         }
 
         function abrirLogros() {
