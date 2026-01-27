@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
     <link rel="icon" type="image/png" href="apple-touch-icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
@@ -409,6 +411,15 @@ const data = await res.json();
                 document.getElementById('modal-world').style.display = "none";
             }
         };
+    </script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registrado', reg))
+                .catch(err => console.log('Error SW', err));
+        });
+    }
     </script>
 </body>
 </html>
