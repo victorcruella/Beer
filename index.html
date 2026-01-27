@@ -63,6 +63,11 @@
         /* --- BOTONES SUPERIORES --- */
         .top-controls { position: absolute; top: 20px; left: 20px; z-index: 20; display: flex; gap: 15px; }
         .btn-circle { width: 50px; height: 50px; padding: 0; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+        /* Color oficial de Ko-fi o un color café */
+        .btn-kofi { 
+            background: #FF5E5B; /* Color rojizo/rosa llamativo */
+            box-shadow: 0 4px #c0392b; 
+}
         .btn-circle:active { transform: scale(0.9); }
         .btn-trophy { background: #f39c12; box-shadow: 0 4px #d35400; }
         .btn-share { background: #3498db; box-shadow: 0 4px #2980b9; }
@@ -114,6 +119,14 @@
         <button class="btn-circle btn-trophy" onclick="abrirLogros()">🏆</button>
         <button class="btn-circle btn-share" onclick="compartirRank()">📲</button>
         <button class="btn-circle btn-world" onclick="abrirRankingMundial()">🌍</button>
+        <div class="top-controls">
+    <button class="btn-circle btn-trophy" onclick="abrirLogros()">🏆</button>
+    <button class="btn-circle btn-share" onclick="compartirRank()">📲</button>
+    <button class="btn-circle btn-world" onclick="abrirRankingMundial()">🌍</button>
+    <a href="https://ko-fi.com/TU_USUARIO_AQUI" target="_blank" style="text-decoration:none;">
+        <button class="btn-circle btn-kofi">☕</button>
+    </a>
+</div>
     </div>
 
     <div id="notif-container"></div>
