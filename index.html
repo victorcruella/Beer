@@ -292,45 +292,67 @@ const data = await res.json();
                 lista.innerHTML = '';
                 if(data.length === 0) lista.innerHTML = '<div class="loading-text">Encara no hi ha dades. Sigues el primer!</div>';
 
-                data.forEach((user, index) => {
-                    const row = document.createElement('div');
-                    row.className = 'rank-row';
-                    
-                    // TRUCO VISUAL: Si es el usuario actual, usamos SU cuenta local real
-                    // porque la base de datos podría ir un poco lenta en actualizar
-                    let displayScore = user.score;
-                    if (user.username === username) {
-                        row.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
-                        displayScore = cuenta; // <--- USAMOS LA CUENTA LOCAL
-                    }
+// ... dentro de abrirRankingMundial, donde está el forEach ...
+        
+        data.forEach((user, index) => {
+            const row = document.createElement('div');
+            row.className = 'rank-row';
+            
+            let displayScore = user.score;
+            // Variable para las birras de hoy
+            let displayDaily = user.daily || 0; 
 
-                    // Icono de medalla para el top 3
-                    let posIcon = `#${index + 1}`;
-                    if (index === 0) posIcon = "🥇";
-                    if (index === 1) posIcon = "🥈";
-                    if (index === 2) posIcon = "🥉";
+            // Si es el usuario actual, usamos los datos locales para que sea instantáneo
+            if (user.username === username) {
+                row.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+                displayScore = cuenta;
+                displayDaily = historial[obtenerFechaHoy()] || 0;
+            }
 
-                    row.innerHTML = `
-                        <div class="rank-pos">${posIcon}</div>
-                        <div class="rank-user">${user.username}</div>
-                        <div class="rank-score">${displayScore}</div>
-                    `;
-                    lista.appendChild(row);
-                });
+            let posIcon = `#${index + 1}`;
+            if (index === 0) posIcon = "🥇";
+            if (index === 1) posIcon = "🥈";
+            if (index === 2) posIcon = "🥉";
 
+            // Preparamos el HTML extra si ha bebido hoy
+            let htmlHoy = "";
+            if (displayDaily > 0) {
+                htmlHoy = `<span style="font-size:12px; color:#e74c3c; margin-left:5px; font-weight:normal;">(+${displayDaily} avui) 🔥</span>`;
+            }
+
+            row.innerHTML = `
+                <div class="rank-pos">${posIcon}</div>
+                <div class="rank-user">${user.username}</div>
+                <div class="rank-score">
+                    ${displayScore}
+                    ${htmlHoy} 
+                </div>
+            `;
+            lista.appendChild(row);
+        });
             } catch (err) {
                 lista.innerHTML = '<div class="loading-text" style="color:#e74c3c">Error connectant al servidor.</div>';
                 console.error(err);
             }
         }
 
-        async function subirPuntuacion() {
+async function subirPuntuacion() {
             if (!username) return;
+            
+            // Calculamos cuántas llevas hoy para enviarlo
+            let hoy = obtenerFechaHoy();
+            let birrasHoy = historial[hoy] || 0;
+
             try {
                 await fetch('/api/ranking', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username, score: cuenta })
+                    // AQUI ESTA LA NOVEDAD: enviamos también 'daily'
+                    body: JSON.stringify({ 
+                        username: username, 
+                        score: cuenta, 
+                        daily: birrasHoy 
+                    })
                 });
             } catch (err) { console.error("Error guardando score", err); }
         }
